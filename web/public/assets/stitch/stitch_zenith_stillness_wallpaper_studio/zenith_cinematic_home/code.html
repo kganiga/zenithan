@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>ZENITH — Cinematic Wallpaper Experience</title>
+<!-- Google Fonts: Playfair Display & Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 with Container Queries & Forms plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "primary": "#ffffff",
+            "surface-container-lowest": "#0d0f0e",
+            "surface-container-low": "#1a1c1b",
+            "primary-fixed-dim": "#cac6be",
+            "outline": "#939188",
+            "primary-fixed": "#e6e2d9",
+            "surface-dim": "#121413",
+            "on-tertiary-container": "#726250",
+            "error-container": "#93000a",
+            "on-tertiary": "#3b2e1f",
+            "background": "#121413",
+            "outline-variant": "#484740",
+            "on-tertiary-fixed-variant": "#524434",
+            "on-surface-variant": "#cac6bd",
+            "surface-container-highest": "#333534",
+            "on-primary": "#31302b",
+            "on-secondary": "#263426",
+            "surface-container-high": "#282a29",
+            "tertiary-container": "#f5dfc8",
+            "on-error-container": "#ffdad6",
+            "on-surface": "#e2e3e0",
+            "inverse-on-surface": "#2f312f",
+            "secondary": "#bbcbb8",
+            "secondary-fixed": "#d7e7d3",
+            "on-primary-container": "#66645d",
+            "primary-container": "#e6e2d9",
+            "secondary-fixed-dim": "#bbcbb8",
+            "on-primary-fixed": "#1c1c16",
+            "inverse-surface": "#e2e3e0",
+            "on-error": "#690005",
+            "surface-variant": "#333534",
+            "on-background": "#e2e3e0",
+            "on-primary-fixed-variant": "#484740",
+            "on-secondary-container": "#adbdaa",
+            "surface-container": "#1e201f",
+            "surface-tint": "#cac6be",
+            "on-secondary-fixed": "#121f12",
+            "tertiary-fixed-dim": "#d8c3ad",
+            "surface-bright": "#383a38",
+            "on-tertiary-fixed": "#241a0c",
+            "tertiary": "#ffffff",
+            "inverse-primary": "#605e58",
+            "surface": "#121413",
+            "tertiary-fixed": "#f5dfc8",
+            "on-secondary-fixed-variant": "#3c4a3c",
+            "error": "#ffb4ab",
+            "secondary-container": "#3f4d3e"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-sm": "0.75rem",
+            "margin-desktop": "3rem",
+            "space-3xl": "4.5rem",
+            "margin": "1.5rem",
+            "space-xl": "2rem",
+            "space-lg": "1.5rem",
+            "space-md": "1rem",
+            "gutter": "1rem",
+            "space-xs": "0.5rem",
+            "space-2xs": "0.25rem",
+            "space-2xl": "3rem",
+            "gutter-mobile": "0.75rem",
+            "margin-mobile": "1.25rem"
+          },
+          "fontFamily": {
+            "display-hero": ["Playfair Display", "serif"],
+            "body-lg": ["Plus Jakarta Sans", "sans-serif"],
+            "label-caps-md": ["Plus Jakarta Sans", "sans-serif"],
+            "mono-metadata": ["Plus Jakarta Sans", "sans-serif"],
+            "label-caps-sm": ["Plus Jakarta Sans", "sans-serif"],
+            "display-hero-mobile": ["Playfair Display", "serif"],
+            "headline-md": ["Playfair Display", "serif"],
+            "headline-sm": ["Playfair Display", "serif"],
+            "headline-lg": ["Playfair Display", "serif"],
+            "body-md": ["Plus Jakarta Sans", "sans-serif"],
+            "body-sm": ["Plus Jakarta Sans", "sans-serif"],
+            "headline-lg-mobile": ["Playfair Display", "serif"]
+          },
+          "fontSize": {
+            "display-hero": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "label-caps-md": ["11px", { "lineHeight": "16px", "letterSpacing": "0.12em", "fontWeight": "600" }],
+            "mono-metadata": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" }],
+            "label-caps-sm": ["9px", { "lineHeight": "12px", "letterSpacing": "0.16em", "fontWeight": "600" }],
+            "display-hero-mobile": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "headline-lg-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "0em", "fontWeight": "400" }]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      -moz-osx-font-smoothing: grayscale;
+      font-feature-settings: 'liga';
+    }
+
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 0.35; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.08); }
+    }
+
+    .animate-pulse-breathe {
+      animation: pulse-subtle 4s ease-in-out infinite;
+    }
+
+    @keyframes audio-wave {
+      0%, 100% { height: 4px; }
+      50% { height: 14px; }
+    }
+
+    .wave-bar-1 { animation: audio-wave 1.2s ease-in-out infinite 0.1s; }
+    .wave-bar-2 { animation: audio-wave 1.2s ease-in-out infinite 0.35s; }
+    .wave-bar-3 { animation: audio-wave 1.2s ease-in-out infinite 0.2s; }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface antialiased overflow-hidden select-none m-0 p-0 font-body-md w-screen h-screen">
+<!-- Mobile Viewport Frame (Edge-to-Edge Canvas) -->
+<div class="relative w-full h-full max-w-md mx-auto overflow-hidden bg-surface-container-lowest flex flex-col justify-between shadow-2xl">
+<!-- 1. Full Viewport Master Background (Nagano Ancient Pine in Mist) -->
+<div class="absolute inset-0 z-0">
+<img alt="Solitary ancient pine tree emerging from mountain mist in the Nagano Alps" class="w-full h-full object-cover object-center filter saturate-[0.88] brightness-[0.96] transition-transform duration-1000 ease-out transform scale-100 active:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWyW2LZcV3gCvBLmQpJdScjuePLg50evUDFhuZfoyJFooXOMPN7qcOSCcuku9STUymqsR4nHdNsCZ6PwTUxvcDaz2UKafJskb8ySQKvb1kQ-cq2oqaEhOGm-QnfzpFHkNfjA55awlccTtrrz6h786_V8m-Zl47NJNok62W3m8-LwqMRuDutZ_ROxIZ4RwGK3PTNavyg-v78HB_XSCycdcORnRnWUA4B_b2dl0lFS2FGbomo2WsuWzb"/>
+<!-- Architectural Atmospheric Gradients -->
+<div class="absolute inset-0 bg-gradient-to-b from-surface-container-lowest/70 via-transparent to-surface-container-lowest/85 pointer-events-none"></div>
+<div class="absolute inset-x-0 bottom-0 h-96 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/60 to-transparent pointer-events-none"></div>
+</div>
+<!-- 2. Android 14 System Status Bar -->
+<header class="relative z-50 pt-2 px-6 flex items-center justify-between text-on-surface-variant font-label-caps-sm text-label-caps-sm tracking-wider">
+<span class="font-medium tracking-tight text-on-surface">09:41</span>
+<div class="flex items-center space-x-2 text-on-surface-variant opacity-80">
+<span class="material-symbols-outlined text-[14px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[14px]">wifi</span>
+<span class="material-symbols-outlined text-[16px]">battery_full</span>
+</div>
+</header>
+<!-- 3. TopAppBar (Shared Component Implementation) -->
+<nav class="fixed top-4 inset-x-4 max-w-lg mx-auto z-50 flex items-center justify-between px-6 py-3 bg-surface/70 dark:bg-surface/70 backdrop-blur-xl outline outline-1 outline-outline-variant/30 rounded-full shadow-sm">
+<!-- Search Leading Action -->
+<button aria-label="Search Collection" class="flex items-center justify-center w-8 h-8 rounded-full text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-opacity duration-200 active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<!-- Brand Logo / Headline -->
+<div class="flex items-center space-x-2">
+<img alt="ZENITH Brand Wordmark" class="h-4 w-auto object-contain opacity-95 brightness-200 contrast-125" src="https://lh3.googleusercontent.com/aida/AEtjO1UjYJF4NZfJn2-2BN9CEvKHGhHUk6sWvl9r7uUsIAHpG6EaSCDNCq5g5QEvMYaE_vHf2w8F9DyzRdMz2xj24CLEbE2wSltPcv5B0XGdnZr76lW4uv-ll23UIPkcBWaXnmYs3SGU0HS1APzRexAQ4yLfxRon88Jg1wQ4A26-UedUnE_IL-XR3waWG87r9vXyM926KHc99KbnKFC5ChqJrtWfKfVXApXXXfELQFiN-0G5eIOR0ACq7I8dcg"/>
+<span class="text-headline-sm font-headline-sm tracking-widest text-primary dark:text-primary uppercase text-[15px] leading-none ml-1">ZENITH</span>
+</div>
+<!-- Living Canvas / Soundscape Trailing Action -->
+<button aria-label="Soundscape toggle" class="relative flex items-center justify-center w-8 h-8 rounded-full text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-opacity duration-200 active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="graphic_eq">graphic_eq</span>
+<!-- Ambient soundscape pulsing micro-indicator -->
+<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-secondary rounded-full animate-ping opacity-75"></span>
+<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-secondary rounded-full"></span>
+</button>
+</nav>
+<!-- 4. Upper Floating Metadata Pill -->
+<div class="relative z-20 mt-16 px-6 flex justify-between items-center">
+<div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-surface-container/60 backdrop-blur-md outline outline-1 outline-outline-variant/20">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="font-label-caps-sm text-label-caps-sm text-on-surface-variant tracking-widest uppercase">LIVING CANVAS · AUDIO ACTIVE</span>
+</div>
+<div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-surface-container/40 backdrop-blur-sm outline outline-1 outline-outline-variant/15 text-on-surface-variant">
+<div class="w-0.5 bg-secondary rounded-full wave-bar-1"></div>
+<div class="w-0.5 bg-secondary rounded-full wave-bar-2"></div>
+<div class="w-0.5 bg-secondary rounded-full wave-bar-3"></div>
+<span class="font-mono-metadata text-mono-metadata text-[10px] pl-1 text-on-surface-variant">WIND &amp; MIST</span>
+</div>
+</div>
+<!-- Center Gallery Void (Allows 85%+ visual breathing room for the pine tree) -->
+<div class="flex-1 flex items-center justify-center relative z-10 pointer-events-none">
+<!-- Minimalist Optical Aperture Watermark Accent -->
+<div class="w-24 h-24 rounded-full border border-outline-variant/10 animate-pulse-breathe flex items-center justify-center opacity-30">
+<div class="w-16 h-16 rounded-full border border-secondary/20"></div>
+</div>
+</div>
+<!-- 5. Editorial Centerpiece & Poetic Typography -->
+<div class="relative z-20 px-6 pb-28 flex flex-col space-y-4">
+<!-- Catalog Entry Tag & Spatial Coordinates -->
+<div class="flex items-center space-x-3">
+<span class="font-mono-metadata text-mono-metadata text-secondary tracking-widest">NO. 042</span>
+<span class="text-outline-variant opacity-60">/</span>
+<span class="font-label-caps-sm text-label-caps-sm tracking-widest text-on-surface-variant uppercase">NAGANO ALPS, JAPAN</span>
+<span class="text-outline-variant opacity-40">·</span>
+<span class="font-mono-metadata text-mono-metadata text-on-tertiary-container text-[11px] tracking-wider">36.65° N, 137.95° E</span>
+</div>
+<!-- Hero Poetic Stanza -->
+<div class="space-y-1">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary font-normal tracking-tight leading-tight">
+          Somewhere,<br/>
+<span class="italic font-normal text-primary-fixed">the world is quiet.</span>
+</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant opacity-75 pt-1">
+          Curated by Hiroshi Takeda · 8K Master Photogrammetry
+        </p>
+</div>
+<!-- Quick Action Controls & Tactile Triggers -->
+<div class="pt-2 flex items-center space-x-3">
+<!-- Enter Studio Primary Ghost Pill -->
+<button class="flex-1 flex items-center justify-center space-x-2 py-3 px-5 rounded-full bg-surface-container/70 backdrop-blur-xl outline outline-1 outline-outline-variant/30 text-primary font-label-caps-md text-label-caps-md tracking-wider uppercase active:scale-95 transition-all duration-150 group shadow-lg shadow-surface-container-lowest/40">
+<span class="material-symbols-outlined text-[17px] text-secondary group-hover:rotate-45 transition-transform duration-300">tune</span>
+<span>ENTER STUDIO</span>
+</button>
+<!-- Lens / EXIF Inspector Modal Trigger -->
+<button aria-label="Wallpaper details and camera optics" class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container/60 backdrop-blur-xl outline outline-1 outline-outline-variant/30 text-on-surface hover:text-primary active:scale-95 transition-all duration-150">
+<span class="material-symbols-outlined text-[19px]">lens</span>
+</button>
+<!-- Save to Private Collection -->
+<button aria-label="Bookmark this photograph" class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container/60 backdrop-blur-xl outline outline-1 outline-outline-variant/30 text-on-surface hover:text-primary active:scale-95 transition-all duration-150">
+<span class="material-symbols-outlined text-[19px]">bookmark_border</span>
+</button>
+</div>
+</div>
+<!-- 6. BottomNavBar (Shared Component Implementation) -->
+<!-- Screen intent is Explore / Cinematic Home destination -->
+<nav class="fixed bottom-6 inset-x-6 max-w-xs mx-auto z-50 flex items-center justify-around px-4 py-2 bg-surface-container/80 dark:bg-surface-container/80 backdrop-blur-2xl outline outline-1 outline-outline-variant/20 rounded-full shadow-2xl shadow-surface-container-lowest/50">
+<!-- Destination 1: Explore (ACTIVE) -->
+<button aria-current="page" class="flex flex-col items-center justify-center text-primary dark:text-primary bg-surface-container-highest/60 dark:bg-surface-container-highest/60 rounded-full px-4 py-1.5 transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined" data-icon="explore" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="font-label-caps-sm text-label-caps-sm tracking-wider uppercase mt-0.5">Explore</span>
+</button>
+<!-- Destination 2: Studio (INACTIVE) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1.5 transition-all duration-200 hover:text-primary dark:hover:text-primary active:scale-95">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+<span class="font-label-caps-sm text-label-caps-sm tracking-wider uppercase mt-0.5">Studio</span>
+</button>
+<!-- Destination 3: Saved (INACTIVE) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1.5 transition-all duration-200 hover:text-primary dark:hover:text-primary active:scale-95">
+<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+<span class="font-label-caps-sm text-label-caps-sm tracking-wider uppercase mt-0.5">Saved</span>
+</button>
+</nav>
+<!-- 7. Android 14 Modern Bottom Gesture Home Bar Indicator -->
+<div class="fixed bottom-1.5 inset-x-0 flex justify-center z-50 pointer-events-none">
+<div class="w-32 h-1 bg-on-surface-variant/40 rounded-full backdrop-blur-sm"></div>
+</div>
+</div>
+<!-- Micro-interactions JavaScript for Museum-grade Stillness -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Subtle immersive tap reaction to dismiss chrome for full photograph viewing
+      const canvas = document.querySelector('img');
+      let isDimmed = false;
+
+      canvas.addEventListener('click', () => {
+        isDimmed = !isDimmed;
+        const chromeElements = document.querySelectorAll('header, nav, .pt-2, .pb-28');
+        chromeElements.forEach(el => {
+          el.style.transition = 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+          el.style.opacity = isDimmed ? '0.1' : '1';
+        });
+      });
+    });
+  </script>
+</body></html>

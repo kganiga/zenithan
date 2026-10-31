@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Zen Nature</string>
+    <string name="title_activity_main">Zen Nature</string>
+    <string name="package_name">com.zennature.wallpaper</string>
+    <string name="custom_url_scheme">com.zennature.wallpaper</string>
+</resources>

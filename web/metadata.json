@@ -1,0 +1,6 @@
+{
+  "name": "Zenithan — High-Resolution Aesthetic Wallpapers",
+  "description": "Discover thousands of stunning high-resolution wallpapers, nature landscapes, AMOLED dark themes, and minimalist backgrounds. Customize in the studio and export for your phone.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
