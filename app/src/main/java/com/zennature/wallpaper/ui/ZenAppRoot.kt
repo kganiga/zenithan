@@ -112,11 +112,12 @@ fun ZenAppRoot(main: MainViewModel) {
         // (landscape phones, foldables, tablets) gets a side rail so vertical space goes to content.
         val compact = maxWidth < 600.dp
         val shortHeight = maxHeight < 480.dp
+        val rootWidth = maxWidth
         val contentWidth = if (compact) maxWidth else maxWidth - RAIL_WIDTH
         val wide = contentWidth >= 700.dp
         Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))) {
             Header(
-                width = maxWidth,
+                width = rootWidth,
                 short = shortHeight,
                 dark = theme == ThemeMode.DARK,
                 onHome = { main.navigate(Tab.HOME) },

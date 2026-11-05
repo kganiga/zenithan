@@ -150,14 +150,16 @@ fun StudioScreen(main: MainViewModel, editor: EditorViewModel, pickPhoto: () -> 
     val saved = rememberFlag(2500, state.saveToken)
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        if (maxWidth >= 600.dp) {
+        val w = maxWidth
+        val h = maxHeight
+        if (w >= 600.dp) {
             Row(Modifier.fillMaxSize().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                 Column(
-                    Modifier.weight(if (maxWidth >= 900.dp) 5f else 4f).fillMaxHeight().padding(vertical = 12.dp),
+                    Modifier.weight(if (w >= 900.dp) 5f else 4f).fillMaxHeight().padding(vertical = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Viewport(state, editor, maxFrameHeight = (maxHeight - 96.dp).coerceAtLeast(160.dp), compact = false)
+                    Viewport(state, editor, maxFrameHeight = (h - 96.dp).coerceAtLeast(160.dp), compact = false)
                 }
                 Column(Modifier.weight(7f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(vertical = 16.dp)) {
                     TopBar(state, saved, pickPhoto, editor, onChangeImage = { main.navigate(Tab.HOME) }, onExport = main::openExport)
@@ -172,7 +174,7 @@ fun StudioScreen(main: MainViewModel, editor: EditorViewModel, pickPhoto: () -> 
             Column(Modifier.fillMaxSize()) {
                 CompactTopBar(state, saved, pickPhoto, editor, onChangeImage = { main.navigate(Tab.HOME) }, onExport = main::openExport)
                 Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp), contentAlignment = Alignment.Center) {
-                    Viewport(state, editor, maxFrameHeight = (maxHeight * 0.42f).coerceAtLeast(160.dp), compact = true)
+                    Viewport(state, editor, maxFrameHeight = (h * 0.42f).coerceAtLeast(160.dp), compact = true)
                 }
                 HorizontalDivider(Modifier.padding(top = 8.dp), color = Zen.colors.border)
                 Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp)) {
