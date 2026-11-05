@@ -27,6 +27,15 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Air
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Bedtime
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.BeachAccess
+import androidx.compose.material.icons.outlined.Terrain
+import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.RocketLaunch
+import androidx.compose.material.icons.outlined.LocalFlorist
+import androidx.compose.material.icons.outlined.Eco
+import androidx.compose.material.icons.outlined.AcUnit
+import androidx.compose.material.icons.outlined.Water
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Forest
 import androidx.compose.material.icons.outlined.Landscape
@@ -85,6 +94,16 @@ fun CategoryIcon.vector(): ImageVector = when (this) {
     CategoryIcon.FEATHER -> Icons.Outlined.Spa
     CategoryIcon.SUNSET -> Icons.Outlined.WbTwilight
     CategoryIcon.MOON -> Icons.Outlined.Bedtime
+    CategoryIcon.WATERFALL -> Icons.Outlined.Water
+    CategoryIcon.SNOW -> Icons.Outlined.AcUnit
+    CategoryIcon.LEAF -> Icons.Outlined.Eco
+    CategoryIcon.FLOWER -> Icons.Outlined.LocalFlorist
+    CategoryIcon.AURORA -> Icons.Outlined.AutoAwesome
+    CategoryIcon.SPACE -> Icons.Outlined.RocketLaunch
+    CategoryIcon.CLOUD -> Icons.Outlined.Cloud
+    CategoryIcon.CANYON -> Icons.Outlined.Terrain
+    CategoryIcon.BEACH -> Icons.Outlined.BeachAccess
+    CategoryIcon.DARK -> Icons.Outlined.DarkMode
 }
 
 /** Discover tab (HomeScreen.tsx): hero, Zen Moments, circadian pick, curated moods, recents, footer. */

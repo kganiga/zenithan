@@ -41,22 +41,70 @@ class RepositoryTest {
         shuffler = { it },
     )
 
-    @Test fun defaultFeedPagesAndWraps() = runBlocking {
+    @Test fun curatedOnlyPagesOnceWithoutWrap() = runBlocking {
         val r = repo()
-        val p1 = r.fetchWallpapers(FilterOptions(), 1).items
-        val p3 = r.fetchWallpapers(FilterOptions(), 3).items
-        val p4 = r.fetchWallpapers(FilterOptions(), 4).items
+        val f = FilterOptions(provider = ProviderFilter.LOCAL)
+        val p1 = r.fetchWallpapers(f, 1).items
+        val p3 = r.fetchWallpapers(f, 3).items
+        val p4 = r.fetchWallpapers(f, 4).items
         assertEquals(20, p1.size)
         assertEquals("l1", p1.first().id)
         assertEquals(5, p3.size)
-        assertEquals(20, p4.size) // wrap-around keeps the stream endless
-        assertEquals("l16", p4.first().id) // (60 % 45) = 15
+        assertTrue(p4.isEmpty()) // no silent repeats
     }
 
-    @Test fun categoryFilterOnDefaultFeed() = runBlocking {
-        val items = repo().fetchWallpapers(FilterOptions(category = "ocean-waves"), 1).items
-        assertEquals(15, items.size)
-        assertTrue(items.all { it.category == "ocean-waves" })
+    @Test fun defaultFeedBlendsRemoteAndRotatesQueries() = runBlocking {
+        val calls = mutableListOf<String>()
+        val wiki = (1..14).map { item("w$it", ProviderType.WIKIMEDIA) }
+        val open = (1..14).map { item("o$it", ProviderType.OPENVERSE) }
+        val r = repo(wiki = wiki, open = open, calls = calls)
+        val p1 = r.fetchWallpapers(FilterOptions(), 1).items
+        assertEquals(6 + 14 + 14, p1.size)
+        assertEquals(listOf("l1", "w1", "o1"), p1.take(3).map { it.id })
+        r.fetchWallpapers(FilterOptions(), 2)
+        val q = com.zennature.wallpaper.data.DISCOVERY_QUERIES
+        assertTrue(calls.containsAll(listOf("wiki:${q[0]}:14", "open:${q[0]}:14", "wiki:${q[1]}:14", "open:${q[1]}:14")))
+        assertTrue(calls.none { it.startsWith("nasa") }) // NASA only on every 4th unfiltered page
+        r.fetchWallpapers(FilterOptions(), 4)
+        assertTrue(calls.any { it.startsWith("nasa:earth from space") })
+    }
+
+    @Test fun remotePageAdvancesAfterFullQueryCycle() = runBlocking {
+        val pages = mutableListOf<Pair<String, Int>>()
+        val cat = com.zennature.wallpaper.data.CURATED_CATEGORIES.first { it.id == "ocean-waves" }
+        val r = WallpaperRepository(locals, { q, _, _, p -> pages += q to p; emptyList() }, { _, _, _, _ -> emptyList() }, { _, _, _, _ -> emptyList() }, { 0L }, { it })
+        val n = cat.queries.size
+        r.fetchWallpapers(FilterOptions(category = cat.id), 1)
+        r.fetchWallpapers(FilterOptions(category = cat.id), n + 1)
+        assertEquals(listOf(cat.query to 1, cat.query to 2), pages)
+    }
+
+    @Test fun categoryFeedUsesCategoryAndNasaOnlyForSpace() = runBlocking {
+        val calls = mutableListOf<String>()
+        val r = repo(calls = calls)
+        val ocean = r.fetchWallpapers(FilterOptions(category = "ocean-waves"), 1).items
+        assertTrue(ocean.isNotEmpty() && ocean.all { it.category == "ocean-waves" })
+        assertTrue(calls.none { it.startsWith("nasa") })
+        r.fetchWallpapers(FilterOptions(category = "space-nebula"), 1)
+        assertTrue(calls.any { it.startsWith("nasa:") })
+    }
+
+    @Test fun laterPagesEndWhenEverythingIsEmpty() = runBlocking {
+        val r = repo()
+        // page 1 falls back to the local catalog when remote is empty; far pages return nothing instead of looping
+        assertTrue(r.fetchWallpapers(FilterOptions(), 1).items.isNotEmpty())
+        assertTrue(r.fetchWallpapers(FilterOptions(), 50).items.isEmpty())
+    }
+
+    @Test fun categoriesAreWellFormed() {
+        val cats = com.zennature.wallpaper.data.CURATED_CATEGORIES
+        assertEquals(20, cats.size)
+        assertEquals(cats.size, cats.map { it.id }.toSet().size)
+        assertTrue(cats.all { it.queries.size >= 3 && it.queries.toSet().size == it.queries.size })
+        val dq = com.zennature.wallpaper.data.DISCOVERY_QUERIES
+        assertEquals(dq.size, dq.toSet().size)
+        assertTrue(cats.all { it.query in dq })
+        assertTrue(dq.take(cats.size).toSet() == cats.map { it.query }.toSet()) // round-robin: one per mood first
     }
 
     @Test fun allProvidersInterleaveAndDedupe() = runBlocking {

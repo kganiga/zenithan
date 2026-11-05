@@ -98,7 +98,7 @@ internal fun parseWikimediaResponse(root: JsonElement?, categoryTag: String): Li
         if (!mime.contains("jpeg") && !mime.contains("jpg") && !mime.contains("png") && !mime.contains("webp")) continue
         val width = info["width"].int() ?: 1200
         val height = info["height"].int() ?: 1800
-        if (width < 600 && height < 600) continue
+        if (maxOf(width, height) < 1000) continue
 
         val meta = info["extmetadata"].obj()
         fun metaValue(key: String) = meta?.get(key).obj()?.get("value").str()
@@ -144,7 +144,7 @@ suspend fun searchWikimediaCommons(
         .addQueryParameter("gsrnamespace", "6")
         .addQueryParameter("gsrlimit", limit.toString())
         .addQueryParameter("gsroffset", maxOf(0, (page - 1) * limit).toString())
-        .addQueryParameter("gsrsearch", "$query filetype:bitmap -logo -flag -map -diagram -icon")
+        .addQueryParameter("gsrsearch", "$query filetype:bitmap -logo -flag -map -diagram -icon -poster -drawing -painting -illustration")
         .addQueryParameter("prop", "imageinfo")
         .addQueryParameter("iiprop", "url|size|mime|extmetadata")
         .addQueryParameter("iiurlwidth", "800")
@@ -274,6 +274,8 @@ suspend fun searchOpenverse(
         .addQueryParameter("page_size", pageSize.toString())
         .addQueryParameter("page", page.toString())
         .addQueryParameter("license_type", "all-cc")
+        .addQueryParameter("category", "photograph")
+        .addQueryParameter("mature", "false")
         .build()
     return parseOpenverseResponse(getJson(client, url.toString(), 7_000), categoryTag)
 }

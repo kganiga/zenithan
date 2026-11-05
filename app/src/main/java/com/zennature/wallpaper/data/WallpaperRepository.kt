@@ -72,25 +72,37 @@ class WallpaperRepository(
         val isDefaultFeed = queryTrimmed.isEmpty() &&
             (filters.provider == ProviderFilter.ALL || filters.provider == ProviderFilter.LOCAL)
 
-        if (isDefaultFeed) {
+        if (isDefaultFeed && filters.provider == ProviderFilter.LOCAL) {
+            // "Curated 4K" only: the bundled catalog, paged once through (no silent repeats).
             providersQueried += ProviderType.LOCAL
-            var pool = pool0
-            if (filters.category.isNotEmpty()) {
-                pool = pool.filter { it.category == filters.category }
-                if (pool.size < 5) pool = pool + localWallpapers.filter { it.category == filters.category }
-            }
-            val startIndex = (page - 1) * PAGE_SIZE
-            val paged = pool.drop(startIndex).take(PAGE_SIZE)
-            fetched = when {
-                paged.isNotEmpty() -> paged
-                pool.isNotEmpty() -> {
-                    // Endless stream: wrap around the pool once exhausted.
-                    val looped = startIndex % pool.size
-                    val slice = pool.drop(looped).take(PAGE_SIZE)
-                    if (slice.size < PAGE_SIZE) slice + pool.take(PAGE_SIZE - slice.size) else slice
+            fetched = categoryPool(pool0, filters.category).drop((page - 1) * PAGE_SIZE).take(PAGE_SIZE)
+        } else if (isDefaultFeed) {
+            // Endless discovery feed: a slice of curated picks plus fresh remote results. Each page uses the next
+            // search term from the category's rotation (or every mood when unfiltered), and the remote page
+            // number only advances after a full cycle, so results keep coming without hammering one query.
+            providersQueried += ProviderType.LOCAL
+            val local = categoryPool(pool0, filters.category).drop((page - 1) * LOCAL_PER_PAGE).take(LOCAL_PER_PAGE)
+            val queries = categoryDef?.queries ?: DISCOVERY_QUERIES
+            val idx = page - 1
+            val query = queries[idx % queries.size]
+            val remotePage = idx / queries.size + 1
+            val withNasa = categoryDef?.useNasa == true || (categoryDef == null && idx % 4 == 3)
+            providersQueried += listOf(ProviderType.WIKIMEDIA, ProviderType.OPENVERSE)
+            if (withNasa) providersQueried += ProviderType.NASA
+            val (wiki, open, nasaItems) = coroutineScope {
+                val w = async { runCatching { wikimedia(query, categoryTag, REMOTE_PER_PAGE, remotePage) }.getOrDefault(emptyList()) }
+                val o = async { runCatching { openverse(query, categoryTag, REMOTE_PER_PAGE, remotePage) }.getOrDefault(emptyList()) }
+                val n = async {
+                    if (!withNasa) emptyList()
+                    else if (categoryDef != null) runCatching { nasa(query, categoryTag, 10, remotePage) }.getOrDefault(emptyList())
+                    else {
+                        val n = idx / 4
+                        runCatching { nasa(NASA_QUERIES[n % NASA_QUERIES.size], categoryTag, 10, n / NASA_QUERIES.size + 1) }.getOrDefault(emptyList())
+                    }
                 }
-                else -> emptyList()
+                Triple(w.await(), o.await(), n.await())
             }
+            fetched = interleave(local, wiki, open, nasaItems)
         } else {
             when (filters.provider) {
                 ProviderFilter.LOCAL -> {
@@ -122,20 +134,14 @@ class WallpaperRepository(
                         val o = async { runCatching { openverse(effectiveQuery, categoryTag, 12, page) }.getOrDefault(emptyList()) }
                         Triple(w.await(), n.await(), o.await())
                     }
-                    val maxLen = maxOf(localMatches.size, wiki.size, nasaItems.size, open.size)
-                    val interleaved = ArrayList<WallpaperItem>(localMatches.size + wiki.size + nasaItems.size + open.size)
-                    for (i in 0 until maxLen) {
-                        localMatches.getOrNull(i)?.let(interleaved::add)
-                        wiki.getOrNull(i)?.let(interleaved::add)
-                        nasaItems.getOrNull(i)?.let(interleaved::add)
-                        open.getOrNull(i)?.let(interleaved::add)
-                    }
-                    fetched = interleaved
+                    fetched = interleave(if (page == 1) localMatches else emptyList(), wiki, nasaItems, open)
                 }
             }
         }
 
-        if (fetched.isEmpty()) {
+        // Offline/empty fallback only on the first page; later pages return empty so the feed can end honestly
+        // instead of looping the same curated images forever.
+        if (fetched.isEmpty() && page == 1) {
             var pool = pool0
             if (queryTrimmed.isNotEmpty()) pool = pool.filter { it.matches(queryTrimmed) }
             if (filters.category.isNotEmpty()) pool = pool.filter { it.category == filters.category }
@@ -163,11 +169,24 @@ class WallpaperRepository(
         return FetchResult(filtered, providersQueried, isCached = false)
     }
 
+    private fun categoryPool(pool: List<WallpaperItem>, category: String): List<WallpaperItem> =
+        if (category.isEmpty()) pool else pool.filter { it.category == category }
+
+    private fun interleave(vararg lists: List<WallpaperItem>): List<WallpaperItem> {
+        val out = ArrayList<WallpaperItem>(lists.sumOf { it.size })
+        val max = lists.maxOfOrNull { it.size } ?: 0
+        for (i in 0 until max) for (l in lists) l.getOrNull(i)?.let(out::add)
+        return out
+    }
+
     private fun WallpaperItem.matches(q: String): Boolean =
         title.lowercase().contains(q) || (description?.lowercase()?.contains(q) ?: false)
 
     companion object {
         const val CACHE_EXPIRY_MS = 15 * 60 * 1000L
+        const val LOCAL_PER_PAGE = 6
+        private val NASA_QUERIES = listOf("earth from space", "nebula", "galaxy", "aurora from space", "milky way", "planet")
+        const val REMOTE_PER_PAGE = 14
         const val PAGE_SIZE = 20
     }
 }

@@ -123,7 +123,7 @@ class FeedViewModel(private val repository: WallpaperRepository) : ViewModel() {
             _state.update {
                 it.copy(
                     items = result?.items ?: it.items,
-                    hasMore = (result?.items?.size ?: 0) >= 10,
+                    hasMore = result?.items?.isNotEmpty() == true,
                     loadingInitial = false,
                 )
             }
@@ -134,25 +134,31 @@ class FeedViewModel(private val repository: WallpaperRepository) : ViewModel() {
         val s = _state.value
         if (s.loadingMore || !s.hasMore || s.loadingInitial) return
         _state.update { it.copy(loadingMore = true) }
-        val nextPage = s.page + 1
         val filters = s.filters
         moreJob = viewModelScope.launch {
-            val result = runCatching { repository.fetchWallpapers(filters, nextPage) }.getOrNull()
-            _state.update { current ->
-                when {
-                    result == null -> current.copy(hasMore = false, loadingMore = false)
-                    result.items.isEmpty() -> current.copy(hasMore = false, loadingMore = false)
-                    else -> {
-                        val existing = current.items.mapTo(HashSet()) { it.id + it.thumbnailUrl }
-                        val fresh = result.items.filterNot { existing.contains(it.id + it.thumbnailUrl) }
-                        val appended = fresh.ifEmpty {
-                            // Keep the stream rolling: re-key repeated items so list keys stay unique.
-                            result.items.mapIndexed { idx, item -> item.copy(id = "${item.id}-p$nextPage-$idx") }
-                        }
-                        current.copy(items = current.items + appended, page = nextPage, loadingMore = false)
-                    }
+            // A page can come back entirely filtered or duplicated (e.g. portrait filter on landscape results).
+            // Skip ahead a few pages before declaring the end, instead of stopping or repeating old items.
+            var page = _state.value.page
+            repeat(MAX_EMPTY_SKIPS) {
+                page += 1
+                val result = runCatching { repository.fetchWallpapers(filters, page) }.getOrNull()
+                if (result == null) {
+                    _state.update { it.copy(hasMore = false, loadingMore = false, page = page) }
+                    return@launch
+                }
+                val existing = _state.value.items.mapTo(HashSet()) { it.id }
+                val seenThumbs = _state.value.items.mapTo(HashSet()) { it.thumbnailUrl }
+                val fresh = result.items.filter { it.id !in existing && it.thumbnailUrl !in seenThumbs }
+                if (fresh.isNotEmpty()) {
+                    _state.update { it.copy(items = it.items + fresh, page = page, loadingMore = false) }
+                    return@launch
                 }
             }
+            _state.update { it.copy(hasMore = false, loadingMore = false, page = page) }
         }
+    }
+
+    private companion object {
+        const val MAX_EMPTY_SKIPS = 4
     }
 }

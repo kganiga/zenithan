@@ -192,9 +192,18 @@ data class CuratedCategory(
     val query: String,
     val icon: CategoryIcon,
     val tagline: String,
-)
+    /** Extra search terms rotated page by page so a category never runs dry. */
+    val extraQueries: List<String> = emptyList(),
+    /** Space-themed categories also pull from NASA; nature ones skip it (NASA returns rockets for "forest"). */
+    val useNasa: Boolean = false,
+) {
+    val queries: List<String> get() = listOf(query) + extraQueries
+}
 
-enum class CategoryIcon { MOUNTAIN, TREES, TREE_PINE, WAVES, COMPASS, SUN, CLOUD_RAIN, FEATHER, SUNSET, MOON }
+enum class CategoryIcon {
+    MOUNTAIN, TREES, TREE_PINE, WAVES, COMPASS, SUN, CLOUD_RAIN, FEATHER, SUNSET, MOON,
+    WATERFALL, SNOW, LEAF, FLOWER, AURORA, SPACE, CLOUD, CANYON, BEACH, DARK,
+}
 
 data class ZenPhrasePreset(
     val id: String,

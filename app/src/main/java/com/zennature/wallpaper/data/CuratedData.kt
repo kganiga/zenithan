@@ -6,17 +6,58 @@ import java.util.Date
 import java.util.Locale
 
 val CURATED_CATEGORIES: List<CuratedCategory> = listOf(
-    CuratedCategory("misty-mountains", "Misty Mountains", "Solitary peaks veiled in cloud", "minimal mist mountain landscape", CategoryIcon.MOUNTAIN, "Quiet elevations rising through morning vapors"),
-    CuratedCategory("japanese-gardens", "Japanese Gardens", "Raked gravel and moss stones", "Japanese moss garden", CategoryIcon.TREES, "Centuries of contemplation sculpted in moss and rock"),
-    CuratedCategory("forests-moss", "Forests & Moss", "Dappled light in ancient cedar", "foggy pine forest", CategoryIcon.TREE_PINE, "Soft evergreen ground cover absorbing all noise"),
-    CuratedCategory("ocean-waves", "Ocean & Waves", "Endless horizon and rhythmic tide", "minimal ocean horizon", CategoryIcon.WAVES, "The timeless breathing of deep waters"),
-    CuratedCategory("lakes-reflections", "Lakes & Reflections", "Mirror calm glacial waters", "calm lake reflection", CategoryIcon.COMPASS, "Stillness that captures both sky and self"),
-    CuratedCategory("minimalist-deserts", "Minimalist Deserts", "Wind-rippled solitary dunes", "minimal sand dunes", CategoryIcon.SUN, "Pure geometry carved by wandering winds"),
-    CuratedCategory("rain-fog", "Rain & Fog", "Soft drops and silver mists", "misty rain forest", CategoryIcon.CLOUD_RAIN, "The gentle sound of water renewing the earth"),
-    CuratedCategory("bamboo-stones", "Bamboo & Stones", "Flexible stalks and grounded granite", "bamboo forest mist", CategoryIcon.FEATHER, "Bending with the breeze, rooted deep in stone"),
-    CuratedCategory("sunsets-dawn", "Sunsets & Dawn", "Ethereal amber and morning rose", "soft sunrise mountain", CategoryIcon.SUNSET, "The quiet threshold between dusk and awakening"),
-    CuratedCategory("moon-night-sky", "Moon & Night Sky", "Celestial silver over silent earth", "moon over mountains", CategoryIcon.MOON, "Infinite quietude under cold celestial light"),
+    CuratedCategory("misty-mountains", "Misty Mountains", "Solitary peaks veiled in cloud", "misty mountains", CategoryIcon.MOUNTAIN, "Quiet elevations rising through morning vapors",
+        listOf("mountain fog valley", "alpine peaks clouds", "mountain range mist", "mountain ridge sunrise", "dolomites", "himalaya")),
+    CuratedCategory("japanese-gardens", "Japanese Gardens", "Raked gravel and moss stones", "Japanese garden", CategoryIcon.TREES, "Centuries of contemplation sculpted in moss and rock",
+        listOf("zen garden", "moss garden kyoto", "japanese maple garden", "koi pond garden", "torii gate forest", "stone lantern garden")),
+    CuratedCategory("forests-moss", "Forests & Moss", "Dappled light in ancient cedar", "foggy forest", CategoryIcon.TREE_PINE, "Soft evergreen ground cover absorbing all noise",
+        listOf("pine forest", "moss forest", "redwood forest", "forest path sunlight", "old growth forest", "rainforest canopy", "birch forest")),
+    CuratedCategory("ocean-waves", "Ocean & Waves", "Endless horizon and rhythmic tide", "ocean waves", CategoryIcon.WAVES, "The timeless breathing of deep waters",
+        listOf("sea horizon", "ocean sunset", "rocky coast waves", "sea cliffs", "seascape long exposure", "wave crashing")),
+    CuratedCategory("lakes-reflections", "Lakes & Reflections", "Mirror calm glacial waters", "lake reflection", CategoryIcon.COMPASS, "Stillness that captures both sky and self",
+        listOf("mountain lake", "glacial lake", "calm lake sunrise", "fjord", "alpine lake", "lake mist morning")),
+    CuratedCategory("minimalist-deserts", "Minimalist Deserts", "Wind-rippled solitary dunes", "sand dunes", CategoryIcon.SUN, "Pure geometry carved by wandering winds",
+        listOf("desert landscape", "sahara dunes", "desert sunset", "salt flat", "namib desert", "desert road")),
+    CuratedCategory("rain-fog", "Rain & Fog", "Soft drops and silver mists", "fog landscape", CategoryIcon.CLOUD_RAIN, "The gentle sound of water renewing the earth",
+        listOf("misty morning", "rain drops leaves", "fog trees", "foggy field", "mist hills", "rainy forest")),
+    CuratedCategory("bamboo-stones", "Bamboo & Stones", "Flexible stalks and grounded granite", "bamboo forest", CategoryIcon.FEATHER, "Bending with the breeze, rooted deep in stone",
+        listOf("arashiyama bamboo", "bamboo grove", "river stones", "pebbles beach", "stone balance", "bamboo leaves")),
+    CuratedCategory("sunsets-dawn", "Sunsets & Dawn", "Ethereal amber and morning rose", "sunrise landscape", CategoryIcon.SUNSET, "The quiet threshold between dusk and awakening",
+        listOf("sunset sky", "golden hour landscape", "dawn mountains", "sunset over sea", "twilight sky", "sunset silhouette trees")),
+    CuratedCategory("moon-night-sky", "Moon & Night Sky", "Celestial silver over silent earth", "moon night sky", CategoryIcon.MOON, "Infinite quietude under cold celestial light",
+        listOf("full moon", "night landscape stars", "moonrise", "crescent moon", "lunar surface"), useNasa = true),
+    CuratedCategory("waterfalls-rivers", "Waterfalls & Rivers", "Falling water over mossy rock", "waterfall", CategoryIcon.WATERFALL, "Constant motion that somehow feels still",
+        listOf("mountain river", "forest stream", "waterfall iceland", "river valley", "cascade moss", "river long exposure")),
+    CuratedCategory("snow-winter", "Snow & Winter", "Hushed white and frozen blue", "snow mountains", CategoryIcon.SNOW, "Silence settles thickest after snowfall",
+        listOf("winter forest snow", "frozen lake", "snowy landscape", "ice cave", "snow covered trees", "winter sunrise")),
+    CuratedCategory("autumn-leaves", "Autumn Colors", "Maple fire and golden birch", "autumn forest", CategoryIcon.LEAF, "Letting go, one warm leaf at a time",
+        listOf("fall foliage", "autumn leaves", "maple leaves", "autumn lake", "autumn road trees", "golden larch")),
+    CuratedCategory("blossoms-meadows", "Blossoms & Meadows", "Cherry petals and wild fields", "cherry blossom", CategoryIcon.FLOWER, "Soft color that lasts only a moment",
+        listOf("wildflower meadow", "lavender field", "sakura tree", "tulip field", "alpine meadow flowers", "poppy field")),
+    CuratedCategory("aurora-stars", "Aurora & Stars", "Green light over frozen land", "aurora borealis", CategoryIcon.AURORA, "The sky quietly dancing for no one",
+        listOf("milky way", "northern lights", "starry sky", "star trails", "night sky mountains", "aurora australis"), useNasa = true),
+    CuratedCategory("space-nebula", "Space & Nebula", "Galaxies, nebulae and blue Earth", "nebula", CategoryIcon.SPACE, "Perspective from the far side of the sky",
+        listOf("galaxy", "earth from space", "hubble deep field", "planet", "star cluster", "james webb"), useNasa = true),
+    CuratedCategory("clouds-sky", "Clouds & Sky", "Drifting cumulus and open blue", "clouds sky", CategoryIcon.CLOUD, "Watching weather pass without holding on",
+        listOf("sea of clouds", "dramatic clouds", "cumulus clouds", "cloudscape", "storm clouds", "clouds above mountains")),
+    CuratedCategory("canyons-rocks", "Canyons & Rocks", "Layered stone and red earth", "canyon", CategoryIcon.CANYON, "Time made visible in stone",
+        listOf("grand canyon", "sandstone", "rock formation", "antelope canyon", "monument valley", "cliffs")),
+    CuratedCategory("tropical-coast", "Tropical Coast", "Turquoise lagoons and palms", "tropical beach", CategoryIcon.BEACH, "Warm water and slow afternoons",
+        listOf("lagoon", "palm trees beach", "island aerial", "coral reef", "beach sunset palm", "maldives")),
+    CuratedCategory("amoled-dark", "AMOLED Dark", "Deep blacks that save battery", "night landscape", CategoryIcon.DARK, "Darkness as a resting place for the eyes",
+        listOf("black sand beach", "dark forest", "night mountains silhouette", "dark clouds", "volcano night", "moonlit lake"), useNasa = true),
 )
+
+/** Rotating search terms for the unfiltered feed: one per page, cycling through every mood. */
+val DISCOVERY_QUERIES: List<String> = CURATED_CATEGORIES.flatMap { it.queries }.let { all ->
+    // Interleave categories so consecutive pages feel different instead of 7 pages of mountains.
+    val byCat = CURATED_CATEGORIES.map { it.queries }
+    val max = byCat.maxOf { it.size }
+    (0 until max).flatMap { i -> byCat.mapNotNull { it.getOrNull(i) } }.distinct().ifEmpty { all }
+}
+
+/** Categories whose wallpapers are mostly black, so tiles get the AMOLED badge. */
+val DARK_CATEGORIES = setOf("moon-night-sky", "amoled-dark", "space-nebula", "aurora-stars")
 
 /** Built on demand so the "today" phrase never goes stale across midnight (the web build froze it at load). */
 fun zenPhrases(today: Date = Date()): List<ZenPhrasePreset> = listOf(

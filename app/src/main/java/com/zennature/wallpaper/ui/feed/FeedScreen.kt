@@ -103,10 +103,12 @@ fun FeedScreen(main: MainViewModel, vm: FeedViewModel, pickPhoto: () -> Unit, wi
         snapshotFlow {
             val info = grid.layoutInfo
             val last = info.visibleItemsInfo.lastOrNull()?.index ?: 0
-            last >= info.totalItemsCount - 8
+            // Keyed on the item count too: if a load was skipped (another one in flight) while already at the
+            // end, the next append changes the count and re-triggers, so the stream can never stall.
+            (last >= info.totalItemsCount - 8) to info.totalItemsCount
         }
             .distinctUntilChanged()
-            .filter { it }
+            .filter { (nearEnd, _) -> nearEnd }
             .collect { vm.loadMore() }
     }
 
@@ -404,7 +406,7 @@ fun WallpaperTile(
 ) {
     val c = Zen.colors
     val shape = RoundedCornerShape(16.dp)
-    val isDark = item.category == "moon-night-sky" || item.title.lowercase().let { it.contains("dark") || it.contains("obsidian") }
+    val isDark = item.category in com.zennature.wallpaper.data.DARK_CATEGORIES || item.title.lowercase().let { it.contains("dark") || it.contains("obsidian") }
     Box(
         Modifier.aspectRatio(9f / 16f).clip(shape).background(Color(0xFF0D0F0E)).border(1.dp, c.border, shape).clickable(onClick = onOpen),
     ) {
