@@ -147,3 +147,15 @@ jobs:
             app/build/screens/
             app/build/reports/tests/
           if-no-files-found: warn
+      - name: Publish screenshots to the ci-screenshots branch (browsable on GitHub)
+        if: always() && (github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository)
+        run: |
+          [ -d app/build/screens ] || exit 0
+          cd app/build/screens
+          git init -q -b ci-screenshots
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          find . -name '*.png' | sort | sed 's|^\./||; s|.*|![&](&)|' > README.md
+          git add -A
+          git commit -qm "Screenshots for ${GITHUB_SHA}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-screenshots
