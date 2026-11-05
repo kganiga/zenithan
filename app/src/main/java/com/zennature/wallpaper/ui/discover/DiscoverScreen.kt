@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,7 +44,6 @@ import androidx.compose.material.icons.outlined.Landscape
 import androidx.compose.material.icons.outlined.Park
 import androidx.compose.material.icons.outlined.Smartphone
 import androidx.compose.material.icons.outlined.Spa
-import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material.icons.outlined.WbTwilight
@@ -60,12 +61,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.zennature.wallpaper.R
 import com.zennature.wallpaper.data.CURATED_CATEGORIES
 import com.zennature.wallpaper.data.CategoryIcon
 import com.zennature.wallpaper.data.circadianSlot
@@ -106,7 +105,7 @@ fun CategoryIcon.vector(): ImageVector = when (this) {
     CategoryIcon.DARK -> Icons.Outlined.DarkMode
 }
 
-/** Discover tab (HomeScreen.tsx): hero, Zen Moments, circadian pick, curated moods, recents, footer. */
+/** Discover tab (HomeScreen.tsx): hero, Zen Moments, circadian pick, curated moods, recents. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DiscoverScreen(main: MainViewModel, pickPhoto: () -> Unit, wide: Boolean) {
@@ -119,7 +118,9 @@ fun DiscoverScreen(main: MainViewModel, pickPhoto: () -> Unit, wide: Boolean) {
     var breathing by rememberSaveable { mutableStateOf(false) }
 
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 24.dp),
+        // Centered and capped on tablets so text lines and cards don't stretch across 1280dp+.
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).wrapContentWidth(Alignment.CenterHorizontally)
+            .widthIn(max = 1200.dp).padding(horizontal = 16.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(40.dp),
     ) {
         // ---------------------------------------------------------------- hero
@@ -165,7 +166,6 @@ fun DiscoverScreen(main: MainViewModel, pickPhoto: () -> Unit, wide: Boolean) {
                             "Zen Moments (60s)", { breathing = true }, icon = Icons.Outlined.Air, iconTint = c.forest,
                             borderColor = c.sage, background = c.sage.copy(alpha = 0.1f), minHeight = 48.dp,
                         )
-                        OutlineButton("Import Photo", pickPhoto, icon = Icons.Outlined.UploadFile, iconTint = c.accent, minHeight = 48.dp)
                     }
                 }
             }
@@ -287,21 +287,6 @@ fun DiscoverScreen(main: MainViewModel, pickPhoto: () -> Unit, wide: Boolean) {
             }
         }
 
-        // ---------------------------------------------------------------- footer
-        Section(c.surfaceMuted.copy(alpha = 0.4f), c.border) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
-                androidx.compose.foundation.Image(
-                    painterResource(R.drawable.zen_logo), "Zenithan Studio Logo",
-                    Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).border(1.dp, c.border, RoundedCornerShape(12.dp)),
-                )
-                SerifText("\"Nothing missing, nothing to add. Nature finishes without hurrying.\"", 14.sp, italic = true, weight = FontWeight.Normal)
-                BodyText("Zenithan Studio · 100% on-device · Free & verified open-licensed photography.")
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlineButton("Lush Moss", { main.selectCategoryFromCurated("japanese-gardens") }, minHeight = 36.dp)
-                    OutlineButton("Mist Peaks", { main.selectCategoryFromCurated("misty-mountains") }, minHeight = 36.dp)
-                }
-            }
-        }
         Spacer(Modifier.height(24.dp))
     }
 

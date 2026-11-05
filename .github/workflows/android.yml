@@ -88,7 +88,8 @@ jobs:
         if: env.HAS_KEYSTORE != 'true'
         run: |
           echo "::warning::ZEN_KEYSTORE_* secrets are not set, so only a debug APK is built. Add them to get a signed release."
-          ./gradlew --stacktrace assembleDebug -PzenVersionName=${{ steps.version.outputs.name }}
+          # assembleRelease still runs (unsigned) so R8/minify problems surface on every PR.
+          ./gradlew --stacktrace assembleDebug assembleRelease -PzenVersionName=${{ steps.version.outputs.name }}
 
       - name: Verify release signature
         if: env.HAS_KEYSTORE == 'true'
@@ -123,3 +124,26 @@ jobs:
           files: |
             dist/*.apk
             dist/*.aab
+
+  screenshots:
+    # Renders every screen at 6 device sizes (small phone to tablet landscape) for layout review.
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Render screens
+        run: ./gradlew --stacktrace testDebugUnitTest -PzenScreenshots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: |
+            app/build/screens/
+            app/build/reports/tests/
+          if-no-files-found: warn

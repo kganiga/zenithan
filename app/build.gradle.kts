@@ -71,6 +71,10 @@ android {
         buildConfig = true
     }
 
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
@@ -103,4 +107,22 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    // Device-size screenshots (Robolectric + Roborazzi), run only with -PzenScreenshots.
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+tasks.withType<Test>().configureEach {
+    if (project.hasProperty("zenScreenshots")) {
+        systemProperty("roborazzi.test.record", "true")
+        filter { includeTestsMatching("com.zennature.wallpaper.screenshots.*") }
+        maxHeapSize = "3g"
+    } else {
+        exclude("**/screenshots/**")
+    }
 }

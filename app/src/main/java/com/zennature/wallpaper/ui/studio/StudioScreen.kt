@@ -1,5 +1,9 @@
 package com.zennature.wallpaper.ui.studio
 
+import androidx.compose.material3.HorizontalDivider
+
+import androidx.compose.foundation.layout.fillMaxHeight
+
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -132,26 +136,83 @@ import kotlin.math.roundToInt
 
 private val FALLBACK_SWATCHES = listOf("#556952", "#8A9A86", "#73716B", "#F8F6F0", "#121413")
 
-/** Studio tab (EditorScreen.tsx). */
+/**
+ * Studio tab (EditorScreen.tsx).
+ *
+ * Phones: compact toolbar, preview pinned to ~42% of the height, controls scroll underneath, so every slider
+ * change is visible while you drag it (the old single scroll put a 630dp preview above the controls, and
+ * dragging on the preview fought with page scrolling).
+ * Landscape / tablets: preview on the left sized to the height, toolbar + controls scroll on the right.
+ */
 @Composable
 fun StudioScreen(main: MainViewModel, editor: EditorViewModel, pickPhoto: () -> Unit, wide: Boolean) {
     val state by editor.state.collectAsStateWithLifecycle()
     val saved = rememberFlag(2500, state.saveToken)
 
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 16.dp)) {
-        TopBar(state, saved, pickPhoto, editor, onChangeImage = { main.navigate(Tab.HOME) }, onExport = main::openExport)
-        Spacer(Modifier.height(16.dp))
-        if (wide) {
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                Column(Modifier.weight(5f), horizontalAlignment = Alignment.CenterHorizontally) { Viewport(state, editor) }
-                Column(Modifier.weight(7f)) { Controls(state, editor) }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        if (maxWidth >= 600.dp) {
+            Row(Modifier.fillMaxSize().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                Column(
+                    Modifier.weight(if (maxWidth >= 900.dp) 5f else 4f).fillMaxHeight().padding(vertical = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Viewport(state, editor, maxFrameHeight = (maxHeight - 96.dp).coerceAtLeast(160.dp), compact = false)
+                }
+                Column(Modifier.weight(7f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(vertical = 16.dp)) {
+                    TopBar(state, saved, pickPhoto, editor, onChangeImage = { main.navigate(Tab.HOME) }, onExport = main::openExport)
+                    Spacer(Modifier.height(16.dp))
+                    MonetCard(state, editor)
+                    Spacer(Modifier.height(16.dp))
+                    Controls(state, editor)
+                    Spacer(Modifier.height(24.dp))
+                }
             }
         } else {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) { Viewport(state, editor) }
-            Spacer(Modifier.height(24.dp))
-            Controls(state, editor)
+            Column(Modifier.fillMaxSize()) {
+                CompactTopBar(state, saved, pickPhoto, editor, onChangeImage = { main.navigate(Tab.HOME) }, onExport = main::openExport)
+                Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp), contentAlignment = Alignment.Center) {
+                    Viewport(state, editor, maxFrameHeight = (maxHeight * 0.42f).coerceAtLeast(160.dp), compact = true)
+                }
+                HorizontalDivider(Modifier.padding(top = 8.dp), color = Zen.colors.border)
+                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp)) {
+                    Controls(state, editor)
+                    Spacer(Modifier.height(16.dp))
+                    MonetCard(state, editor)
+                    Spacer(Modifier.height(24.dp))
+                }
+            }
         }
-        Spacer(Modifier.height(32.dp))
+    }
+}
+
+/** One-row toolbar for phones: icon actions only, so it never wraps onto two or three lines. */
+@Composable
+private fun CompactTopBar(
+    state: EditorUiState,
+    saved: Boolean,
+    pickPhoto: () -> Unit,
+    editor: EditorViewModel,
+    onChangeImage: () -> Unit,
+    onExport: () -> Unit,
+) {
+    val c = Zen.colors
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        IconSquareButton(Icons.AutoMirrored.Outlined.ArrowBack, "Change image", onChangeImage, bordered = false)
+        IconSquareButton(Icons.Outlined.UploadFile, "Import photo", pickPhoto, bordered = false, tint = c.accent)
+        Spacer(Modifier.weight(1f))
+        IconSquareButton(Icons.AutoMirrored.Outlined.Undo, "Undo", editor::undo, enabled = state.canUndo)
+        IconSquareButton(Icons.AutoMirrored.Outlined.Redo, "Redo", editor::redo, enabled = state.canRedo)
+        IconSquareButton(Icons.Outlined.RestartAlt, "Reset to default settings", editor::reset)
+        IconSquareButton(
+            if (saved) Icons.Outlined.Check else Icons.Outlined.Save, if (saved) "Saved" else "Save project",
+            { editor.saveProject() }, tint = if (saved) c.emerald else c.textSecondary,
+        )
+        IconSquareButton(Icons.Outlined.Download, "Export", onExport, tint = c.inverseText, background = c.inverseBg, bordered = false)
     }
 }
 
@@ -196,13 +257,13 @@ private fun TopBar(
 // ============================================================================ viewport
 
 @Composable
-private fun Viewport(state: EditorUiState, editor: EditorViewModel) {
+private fun Viewport(state: EditorUiState, editor: EditorViewModel, maxFrameHeight: Dp, compact: Boolean) {
     val c = Zen.colors
     val s = state.settings
     val ratio = aspectRatioDef(s.cropRatio)
     val phoneLike = s.cropRatio == AspectRatioType.MOBILE || s.cropRatio == AspectRatioType.FLAGSHIP
 
-    Column(Modifier.fillMaxWidth().widthIn(max = 460.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxWidth().widthIn(max = 460.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             BodyText(ratio.label, mono = true, size = 11.sp, modifier = Modifier.weight(1f))
             val gridOn = s.gridOverlay != GridOverlayType.NONE
@@ -250,7 +311,8 @@ private fun Viewport(state: EditorUiState, editor: EditorViewModel) {
         val clock = rememberClock()
         val density = LocalDensity.current.density
         Box(
-            Modifier.widthIn(max = frameWidth).fillMaxWidth().aspectRatio(frameAspect)
+            // Bounded by width AND the height the layout can spare, so it fits short and landscape screens.
+            Modifier.widthIn(max = minOf(frameWidth, maxFrameHeight * frameAspect)).fillMaxWidth().aspectRatio(frameAspect)
                 .clip(RoundedCornerShape(32.dp)).background(Color(0xFF0D0F0E))
                 .pointerInput(Unit) {
                     // Drag pans at the web touch factor (0.35 per CSS px); pinch zoom is new on native.
@@ -287,9 +349,11 @@ private fun Viewport(state: EditorUiState, editor: EditorViewModel) {
                 }
             }
         }
-        BodyText("Drag to pan · Pinch to zoom · Toggle Apps/Lock above to test legibility · Guides & overlays are never exported", size = 11.sp, color = c.textTertiary)
-
-        MonetCard(state, editor)
+        BodyText(
+            if (compact) "Drag to pan · Pinch to zoom · Guides are never exported"
+            else "Drag to pan · Pinch to zoom · Toggle Apps/Lock above to test legibility · Guides & overlays are never exported",
+            size = 11.sp, color = c.textTertiary, maxLines = if (compact) 1 else 3,
+        )
     }
 }
 

@@ -98,7 +98,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private enum class PreviewMode { CLEAN, LOCK, HOME }
-private enum class GuidePlatform(val label: String) { ANDROID("Android"), IPHONE("iPhone"), DESKTOP("Desktop") }
 
 private const val PHONE_W = 1440
 private const val PHONE_H = 2560
@@ -126,7 +125,6 @@ fun DetailSheet(
     var banner by remember { mutableStateOf<String?>(null) }
     var showGuide by remember { mutableStateOf(false) }
     var showTargets by remember { mutableStateOf(false) }
-    var platform by remember { mutableStateOf(GuidePlatform.ANDROID) }
     var copiedToken by remember { mutableIntStateOf(0) }
     val copied = rememberFlag(2500, copiedToken)
     val imageUrl = wallpaper.fullUrl.ifEmpty { wallpaper.thumbnailUrl }
@@ -228,7 +226,7 @@ fun DetailSheet(
                                     }
                                 }
                                 if (busy) CircularProgressIndicator(color = c.sage, strokeWidth = 2.dp, modifier = Modifier.size(20.dp).align(Alignment.CenterHorizontally))
-                                Guide(showGuide, { showGuide = !showGuide }, platform) { platform = it }
+                                Guide(showGuide, { showGuide = !showGuide })
                             }
                             LicenseCard(wallpaper) { url ->
                                 runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
@@ -364,7 +362,7 @@ private fun TargetRow(icon: ImageVector, label: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun Guide(open: Boolean, onToggle: () -> Unit, platform: GuidePlatform, onPlatform: (GuidePlatform) -> Unit) {
+private fun Guide(open: Boolean, onToggle: () -> Unit) {
     val c = Zen.colors
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -374,33 +372,13 @@ private fun Guide(open: Boolean, onToggle: () -> Unit, platform: GuidePlatform, 
                 BodyText("How to set on your device", weight = FontWeight.Medium)
                 Icon(if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, null, tint = c.textSecondary, modifier = Modifier.size(16.dp))
             }
-            if (open) {
-                GuidePlatform.entries.forEach { p ->
-                    val sel = p == platform
-                    Text(
-                        p.label, fontSize = 10.sp, fontWeight = FontWeight.Medium,
-                        color = if (sel) c.inverseText else c.textSecondary,
-                        modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(if (sel) c.inverseBg else Color.Transparent)
-                            .clickable { onPlatform(p) }.padding(horizontal = 8.dp, vertical = 3.dp),
-                    )
-                }
-            }
         }
         if (open) {
-            val steps = when (platform) {
-                GuidePlatform.ANDROID -> listOf(
-                    "Tap " to "Apply to Device" to " above and pick Home, Lock or both. It is applied instantly.",
-                    "Prefer your launcher's cropper? Choose " to "Set as…" to " and pick your launcher or Photos.",
-                )
-                GuidePlatform.IPHONE -> listOf(
-                    "Tap " to "Download 4K" to " to save the image to your device.",
-                    "In Photos, tap the Share icon [↑], select " to "\"Use as Wallpaper\"" to " and tap Add.",
-                )
-                GuidePlatform.DESKTOP -> listOf(
-                    "Tap " to "Download 4K" to " to save the full original image.",
-                    "Right-click the image file on your desktop and choose " to "\"Set desktop background\"" to ".",
-                )
-            }
+            // Android only: the old web build also showed iPhone and desktop steps, which make no sense in an APK.
+            val steps = listOf(
+                "Tap " to "Apply to Device" to " above and pick Home, Lock or both. It is applied instantly.",
+                "Prefer your launcher's cropper? Choose " to "Set as…" to " and pick your launcher or Photos.",
+            )
             steps.forEachIndexed { i, (pre, after) ->
                 val (before, bold) = pre
                 Row(verticalAlignment = Alignment.Top) {

@@ -15,7 +15,15 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -27,10 +35,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.DarkMode
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Tune
@@ -51,6 +57,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -101,27 +108,34 @@ fun ZenAppRoot(main: MainViewModel) {
     BackHandler(enabled = detail == null && !exportOpen && tab != Tab.HOME) { main.navigate(Tab.HOME) }
 
     BoxWithConstraints(Modifier.fillMaxSize().background(Zen.colors.background)) {
-        val wide = maxWidth >= 768.dp
-        Column(Modifier.fillMaxSize()) {
+        // Window size classes: compact (<600dp, phones in portrait) gets a bottom bar; anything wider
+        // (landscape phones, foldables, tablets) gets a side rail so vertical space goes to content.
+        val compact = maxWidth < 600.dp
+        val shortHeight = maxHeight < 480.dp
+        val contentWidth = if (compact) maxWidth else maxWidth - RAIL_WIDTH
+        val wide = contentWidth >= 700.dp
+        Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))) {
             Header(
-                wide = wide,
-                tab = tab,
-                favoritesCount = favorites.size,
+                width = maxWidth,
+                short = shortHeight,
                 dark = theme == ThemeMode.DARK,
-                onNavigate = main::navigate,
+                onHome = { main.navigate(Tab.HOME) },
                 onToggleTheme = main::toggleTheme,
             )
-            Box(Modifier.weight(1f)) {
-                Crossfade(targetState = tab, label = "tab") { current ->
-                    when (current) {
-                        Tab.HOME -> FeedScreen(main, feed, pickPhoto, wide)
-                        Tab.CURATED -> DiscoverScreen(main, pickPhoto, wide)
-                        Tab.STUDIO -> StudioScreen(main, editor, pickPhoto, wide)
-                        Tab.SAVED -> SavedScreen(main, wide)
+            Row(Modifier.weight(1f)) {
+                if (!compact) NavRail(tab, favorites.size, main::navigate)
+                Box(Modifier.weight(1f).then(if (compact) Modifier else Modifier.navigationBarsPadding())) {
+                    Crossfade(targetState = tab, label = "tab") { current ->
+                        when (current) {
+                            Tab.HOME -> FeedScreen(main, feed, pickPhoto, wide)
+                            Tab.CURATED -> DiscoverScreen(main, pickPhoto, wide)
+                            Tab.STUDIO -> StudioScreen(main, editor, pickPhoto, wide)
+                            Tab.SAVED -> SavedScreen(main, wide)
+                        }
                     }
                 }
             }
-            if (!wide) BottomNav(tab, favorites.size, main::navigate)
+            if (compact) BottomNav(tab, favorites.size, main::navigate)
         }
 
         detail?.let { item ->
@@ -151,90 +165,61 @@ fun ZenAppRoot(main: MainViewModel) {
     }
 }
 
+/**
+ * App bar. Navigation lives only in the bottom bar / side rail; the old header repeated Saved and Create
+ * (Studio) buttons that overflowed 360dp phones and duplicated the tabs.
+ */
 @Composable
-private fun Header(
-    wide: Boolean,
-    tab: Tab,
-    favoritesCount: Int,
-    dark: Boolean,
-    onNavigate: (Tab) -> Unit,
-    onToggleTheme: () -> Unit,
-) {
+private fun Header(width: Dp, short: Boolean, dark: Boolean, onHome: () -> Unit, onToggleTheme: () -> Unit) {
     val c = Zen.colors
     Column(Modifier.fillMaxWidth().background(c.background.copy(alpha = 0.96f)).statusBarsPadding()) {
         Row(
-            Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 16.dp),
+            Modifier.fillMaxWidth().height(if (short) 48.dp else 60.dp).padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(
-                Modifier.clip(RoundedCornerShape(12.dp)).clickable { onNavigate(Tab.HOME) }.padding(2.dp),
+                Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).clickable(onClick = onHome).padding(2.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Image(
                     painterResource(R.drawable.zen_logo),
                     contentDescription = "Zenithan Studio Logo",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(36.dp).clip(RoundedCornerShape(12.dp)).border(1.dp, c.border, RoundedCornerShape(12.dp)),
+                    modifier = Modifier.size(if (short) 30.dp else 36.dp).clip(RoundedCornerShape(10.dp)).border(1.dp, c.border, RoundedCornerShape(10.dp)),
                 )
-                Spacer(Modifier.width(12.dp))
-                Column {
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f, fill = false)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        SerifText("Zenithan", 20.sp, weight = FontWeight.Bold)
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            "STUDIO",
-                            fontSize = 10.sp,
-                            letterSpacing = 1.5.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = c.accent,
-                            modifier = Modifier.background(c.sage.copy(alpha = 0.2f), RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp),
-                        )
-                    }
-                    if (wide) BodyText("High-resolution wallpapers & creative studio", size = 12.sp)
-                }
-            }
-
-            if (wide) {
-                Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                    HeaderLink("Explore Wallpapers", tab == Tab.HOME) { onNavigate(Tab.HOME) }
-                    HeaderLink("Curated Moods", tab == Tab.CURATED) { onNavigate(Tab.CURATED) }
-                    HeaderLink("Wallpaper Studio", tab == Tab.STUDIO) { onNavigate(Tab.STUDIO) }
-                    HeaderLink(if (favoritesCount > 0) "Saved  $favoritesCount" else "Saved", tab == Tab.SAVED) { onNavigate(Tab.SAVED) }
-                }
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (!wide) {
-                    Box(Modifier.size(44.dp).clip(RoundedCornerShape(10.dp)).clickable { onNavigate(Tab.SAVED) }, contentAlignment = Alignment.Center) {
-                        Icon(Icons.Outlined.FavoriteBorder, "Saved Wallpapers", tint = c.textSecondary, modifier = Modifier.size(20.dp))
-                        if (favoritesCount > 0) {
-                            Box(Modifier.align(Alignment.TopEnd).offset(x = (-8).dp, y = 8.dp).size(8.dp).background(c.accentSoft, CircleShape))
+                        SerifText("Zenithan", if (short) 18.sp else 20.sp, weight = FontWeight.Bold, maxLines = 1)
+                        if (width >= 340.dp) {
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "STUDIO",
+                                fontSize = 10.sp,
+                                letterSpacing = 1.5.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = c.accent,
+                                maxLines = 1,
+                                modifier = Modifier.background(c.sage.copy(alpha = 0.2f), RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp),
+                            )
                         }
                     }
+                    if (width >= 900.dp && !short) BodyText("High-resolution wallpapers & creative studio", size = 12.sp, maxLines = 1)
                 }
-                Row(
-                    Modifier.height(44.dp).clip(RoundedCornerShape(10.dp)).clickable(onClick = onToggleTheme).padding(horizontal = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        if (dark) Icons.Outlined.LightMode else Icons.Outlined.DarkMode,
-                        contentDescription = if (dark) "Switch to Warm Mist white theme" else "Switch to Zen Charcoal dark theme",
-                        tint = if (dark) Color(0xFFBBCBB8) else c.textSecondary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    if (wide) {
-                        Spacer(Modifier.width(8.dp))
-                        BodyText(if (dark) "Mist White" else "Charcoal", weight = FontWeight.Medium)
-                    }
-                }
-                Row(
-                    Modifier.height(40.dp).clip(RoundedCornerShape(10.dp)).background(c.inverseBg).clickable { onNavigate(Tab.STUDIO) }.padding(horizontal = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Outlined.AutoAwesome, null, tint = c.inverseText, modifier = Modifier.size(14.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("Create", color = c.inverseText, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+            }
+            Row(
+                Modifier.height(44.dp).clip(RoundedCornerShape(10.dp)).clickable(onClick = onToggleTheme).padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    if (dark) Icons.Outlined.LightMode else Icons.Outlined.DarkMode,
+                    contentDescription = if (dark) "Switch to Warm Mist white theme" else "Switch to Zen Charcoal dark theme",
+                    tint = if (dark) Color(0xFFBBCBB8) else c.textSecondary,
+                    modifier = Modifier.size(18.dp),
+                )
+                if (width >= 900.dp) {
+                    Spacer(Modifier.width(8.dp))
+                    BodyText(if (dark) "Mist White" else "Charcoal", weight = FontWeight.Medium)
                 }
             }
         }
@@ -242,19 +227,7 @@ private fun Header(
     }
 }
 
-@Composable
-private fun HeaderLink(text: String, active: Boolean, onClick: () -> Unit) {
-    val c = Zen.colors
-    Column(Modifier.clickable(onClick = onClick).padding(vertical = 4.dp)) {
-        Text(
-            text,
-            fontSize = 14.sp,
-            fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium,
-            color = if (active) c.textPrimary else c.textSecondary,
-        )
-        if (active) Box(Modifier.fillMaxWidth().height(2.dp).background(c.accentSoft))
-    }
-}
+private val RAIL_WIDTH = 84.dp
 
 private data class NavItem(val tab: Tab, val label: String, val icon: ImageVector)
 
@@ -311,5 +284,52 @@ private fun BottomNav(current: Tab, favoritesCount: Int, onNavigate: (Tab) -> Un
                 }
             }
         }
+    }
+}
+
+/** Side navigation for landscape phones, foldables and tablets. */
+@Composable
+private fun NavRail(current: Tab, favoritesCount: Int, onNavigate: (Tab) -> Unit) {
+    val c = Zen.colors
+    Row(Modifier.fillMaxHeight()) {
+        Column(
+            Modifier.width(RAIL_WIDTH - 1.dp).fillMaxHeight().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            NAV_ITEMS.forEach { item ->
+                val active = current == item.tab
+                Column(
+                    Modifier.width(72.dp).clip(RoundedCornerShape(16.dp)).clickable { onNavigate(item.tab) }.padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Box(
+                        Modifier.width(52.dp).height(30.dp).clip(CircleShape).background(if (active) c.sage.copy(alpha = 0.2f) else Color.Transparent),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(item.icon, item.label, tint = if (active) c.accent else c.textTertiary, modifier = Modifier.size(20.dp))
+                        if (item.tab == Tab.SAVED && favoritesCount > 0) {
+                            Box(Modifier.align(Alignment.TopEnd).padding(top = 2.dp, end = 6.dp).background(c.accentSoft, CircleShape).padding(horizontal = 4.dp)) {
+                                Text(
+                                    if (favoritesCount > 99) "99+" else favoritesCount.toString(),
+                                    color = if (c.isDark) Color(0xFF121413) else Color.White,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                    }
+                    Text(
+                        item.label,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium,
+                        color = if (active) c.textPrimary else c.textTertiary,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+            }
+        }
+        Box(Modifier.width(1.dp).fillMaxHeight().background(c.border))
     }
 }
