@@ -152,7 +152,8 @@ fun StudioScreen(main: MainViewModel, editor: EditorViewModel, pickPhoto: () -> 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val w = maxWidth
         val h = maxHeight
-        if (w >= 600.dp) {
+        // Side by side only when the screen is wide AND not portrait; portrait tablets get the pinned layout.
+        if (w >= 600.dp && w > h * 0.9f) {
             Row(Modifier.fillMaxSize().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                 Column(
                     Modifier.weight(if (w >= 900.dp) 5f else 4f).fillMaxHeight().padding(vertical = 12.dp),
