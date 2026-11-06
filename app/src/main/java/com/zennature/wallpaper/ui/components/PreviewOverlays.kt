@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -66,30 +67,33 @@ fun LockScreenOverlay(
     variant: LockVariant = LockVariant.DETAIL,
     timeSize: TextUnit = 60.sp,
 ) {
-    Box(
+    // Scales with the frame it's drawn in (designed at ~280dp wide) so small Studio previews on short or
+    // landscape screens don't wrap the clock onto two lines.
+    BoxWithConstraints(
         modifier
             .fillMaxSize()
             .background(Brush.verticalGradient(0f to Color(0x73000000), 0.5f to Color.Transparent, 1f to Color(0xA6000000))),
     ) {
+        val k = (maxWidth / 280.dp).coerceIn(0.4f, 1.3f)
         Column(
-            Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 16.dp),
+            Modifier.fillMaxSize().padding(horizontal = 20.dp * k, vertical = 16.dp * k),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Column(Modifier.padding(top = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(Modifier.padding(top = 28.dp * k), horizontalAlignment = Alignment.CenterHorizontally) {
                 when (variant) {
                     LockVariant.DETAIL -> {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Outlined.Lock, null, tint = Color.White.copy(alpha = 0.85f), modifier = Modifier.size(12.dp))
                             Spacer(Modifier.width(4.dp))
-                            OverlayText("SWIPE UP TO UNLOCK", 11.sp, FontWeight.Medium, alpha = 0.85f)
+                            OverlayText("SWIPE UP TO UNLOCK", 11.sp * k, FontWeight.Medium, alpha = 0.85f)
                         }
-                        OverlayText(clock.time, timeSize, FontWeight.ExtraLight)
-                        OverlayText(clock.longDate, 12.sp, FontWeight.Medium, alpha = 0.9f)
+                        OverlayText(clock.time, timeSize * k, FontWeight.ExtraLight)
+                        OverlayText(clock.longDate, 12.sp * k, FontWeight.Medium, alpha = 0.9f)
                     }
                     LockVariant.STUDIO, LockVariant.HERO -> {
-                        OverlayText(clock.shortDate.uppercase(), 11.sp, FontWeight.Medium, alpha = 0.85f)
-                        OverlayText(clock.time, timeSize, FontWeight.ExtraLight)
+                        OverlayText(clock.shortDate.uppercase(), 11.sp * k, FontWeight.Medium, alpha = 0.85f)
+                        OverlayText(clock.time, timeSize * k, FontWeight.ExtraLight)
                     }
                 }
             }
@@ -99,7 +103,7 @@ fun LockScreenOverlay(
                     ShortcutBubble(Icons.Outlined.CameraAlt)
                 }
                 LockVariant.STUDIO -> Box(
-                    Modifier.padding(bottom = 12.dp).width(96.dp).height(4.dp).background(Color.White.copy(alpha = 0.4f), CircleShape),
+                    Modifier.padding(bottom = 12.dp * k).width(96.dp * k).height(4.dp).background(Color.White.copy(alpha = 0.4f), CircleShape),
                 )
                 LockVariant.HERO -> Column(Modifier.padding(bottom = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
@@ -122,6 +126,8 @@ enum class LockVariant { DETAIL, STUDIO, HERO }
 private fun OverlayText(text: String, size: TextUnit, weight: FontWeight, alpha: Float = 1f) {
     Text(
         text,
+        maxLines = 1,
+        softWrap = false,
         style = TextStyle(
             fontFamily = Jakarta,
             fontSize = size,

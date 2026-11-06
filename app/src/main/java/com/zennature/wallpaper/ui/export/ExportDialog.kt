@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -181,9 +182,11 @@ fun ExportDialog(wallpaper: WallpaperItem, settings: EditorSettings, primaryColo
                     }
                     IconSquareButton(Icons.Outlined.Close, "Close export modal", onClose, bordered = false)
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                // Narrow phones: preview above the options, so the chips get the full width instead of
+                // squeezing "Standard FHD" / "Source Res" into broken two-line labels.
+                val exportPreview: @Composable (Modifier) -> Unit = { mod ->
                     Box(
-                        Modifier.width(120.dp).aspectRatio(dims.width.toFloat() / dims.height).clip(RoundedCornerShape(16.dp)).background(Color(0xFF0D0F0E)),
+                        mod.width(120.dp).aspectRatio(dims.width.toFloat() / dims.height).clip(RoundedCornerShape(16.dp)).background(Color(0xFF0D0F0E)),
                         contentAlignment = Alignment.Center,
                     ) {
                         val bmp = preview
@@ -194,7 +197,9 @@ fun ExportDialog(wallpaper: WallpaperItem, settings: EditorSettings, primaryColo
                             BodyText("Rendering...", size = 10.sp, color = Color.White.copy(alpha = 0.7f))
                         }
                     }
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                }
+                val exportOptions: @Composable (Modifier) -> Unit = { mod ->
+                    Column(mod, verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         Label("Wallpaper Bundle")
                         SegmentedRow {
                             BundleOption(Icons.Outlined.Smartphone, "Single Wallpaper", "Current custom framing", bundle == Bundle.SINGLE, Modifier.weight(1f)) { bundle = Bundle.SINGLE }
@@ -208,6 +213,19 @@ fun ExportDialog(wallpaper: WallpaperItem, settings: EditorSettings, primaryColo
                         SegmentedRow {
                             ChoiceChip("High-Fidelity JPEG (95%)", format == ImageFormat.JPEG, { format = ImageFormat.JPEG }, Modifier.weight(1f))
                             ChoiceChip("Lossless PNG", format == ImageFormat.PNG, { format = ImageFormat.PNG }, Modifier.weight(1f))
+                        }
+                    }
+                }
+                BoxWithConstraints {
+                    if (maxWidth < 480.dp) {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            exportPreview(Modifier.align(Alignment.CenterHorizontally))
+                            exportOptions(Modifier.fillMaxWidth())
+                        }
+                    } else {
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            exportPreview(Modifier)
+                            exportOptions(Modifier.weight(1f))
                         }
                     }
                 }

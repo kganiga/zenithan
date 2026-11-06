@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -89,7 +91,9 @@ fun SavedScreen(main: MainViewModel, wide: Boolean) {
     }
 
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 24.dp),
+        // Centered and capped on tablets so text lines and cards don't stretch across 1280dp+.
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).wrapContentWidth(Alignment.CenterHorizontally)
+            .widthIn(max = 1200.dp).padding(horizontal = 16.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {

@@ -103,8 +103,6 @@ class FeedViewModel(private val repository: WallpaperRepository) : ViewModel() {
         shuffle()
     }
 
-    fun refresh() = loadInitial()
-
     private fun setFilters(transform: (FilterOptions) -> FilterOptions) {
         val before = _state.value.filters
         val after = transform(before)

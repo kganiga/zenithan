@@ -7,6 +7,13 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val appVersionName: String = (findProperty("zenVersionName") as String?)?.removePrefix("v")?.takeIf { it.isNotBlank() } ?: "2.0.0"
+val appVersionCode: Int = appVersionName.split(".").map { it.takeWhile(Char::isDigit).toIntOrNull() ?: 0 }
+    .let { p -> p.getOrElse(0) { 0 } * 10000 + p.getOrElse(1) { 0 } * 100 + p.getOrElse(2) { 0 } }
+
+// Output files are named after the app: ZenNature-2.0.0-release.apk / .aab
+extensions.configure<org.gradle.api.plugins.BasePluginExtension> { archivesName.set("ZenNature-$appVersionName") }
+
 android {
     namespace = "com.zennature.wallpaper"
     compileSdk = 36
@@ -16,21 +23,34 @@ android {
         applicationId = "com.zennature.wallpaper"
         minSdk = 24
         targetSdk = 36
-        versionCode = 2
-        versionName = "2.0.0"
+        // CI passes -PzenVersionName from the git tag (v2.1.0 -> 2.1.0). versionCode is derived from it
+        // (major*10000 + minor*100 + patch) so every release is strictly increasing without manual bumps.
+        versionName = appVersionName
+        versionCode = appVersionCode
     }
 
-    // Release signing is read from the gitignored keystore.properties; without it the release APK is unsigned.
+    // Release signing: CI supplies ZEN_KEYSTORE_* environment variables (from GitHub secrets); locally the
+    // gitignored keystore.properties is used. With neither, the release APK is left unsigned.
     val keystorePropsFile = rootProject.file("keystore.properties")
-    val releaseSigning = if (keystorePropsFile.exists()) {
-        val props = Properties().apply { keystorePropsFile.inputStream().use { load(it) } }
-        signingConfigs.create("release") {
-            storeFile = file(props.getProperty("storeFile"))
-            storePassword = props.getProperty("storePassword")
-            keyAlias = props.getProperty("keyAlias")
-            keyPassword = props.getProperty("keyPassword")
+    val envKeystore = System.getenv("ZEN_KEYSTORE_FILE")?.takeIf { it.isNotBlank() && file(it).exists() }
+    val releaseSigning = when {
+        envKeystore != null -> signingConfigs.create("release") {
+            storeFile = file(envKeystore)
+            storePassword = System.getenv("ZEN_KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("ZEN_KEY_ALIAS")
+            keyPassword = System.getenv("ZEN_KEY_PASSWORD")
         }
-    } else null
+        keystorePropsFile.exists() -> {
+            val props = Properties().apply { keystorePropsFile.inputStream().use { load(it) } }
+            signingConfigs.create("release") {
+                storeFile = file(props.getProperty("storeFile"))
+                storePassword = props.getProperty("storePassword")
+                keyAlias = props.getProperty("keyAlias")
+                keyPassword = props.getProperty("keyPassword")
+            }
+        }
+        else -> null
+    }
 
     buildTypes {
         release {
@@ -49,6 +69,10 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
 
     packaging {
@@ -83,4 +107,22 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    // Device-size screenshots (Robolectric + Roborazzi), run only with -PzenScreenshots.
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+tasks.withType<Test>().configureEach {
+    if (project.hasProperty("zenScreenshots")) {
+        systemProperty("roborazzi.test.record", "true")
+        filter { includeTestsMatching("com.zennature.wallpaper.screenshots.*") }
+        maxHeapSize = "3g"
+    } else {
+        exclude("**/screenshots/**")
+    }
 }

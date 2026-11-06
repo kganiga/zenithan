@@ -6,7 +6,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -37,7 +41,6 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.GridView
-import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Shuffle
 import androidx.compose.material.icons.outlined.Tune
@@ -115,10 +118,11 @@ fun FeedScreen(main: MainViewModel, vm: FeedViewModel, pickPhoto: () -> Unit, wi
     val showScrollTop by remember { derivedStateOf { grid.firstVisibleItemIndex > 6 } }
     val toast = rememberFlag(2000, state.shuffleToken)
     BoxContent {
-        val columns = gridColumns(wide, state.density)
-        val gap: Dp = if (state.density == GridDensity.STANDARD) 12.dp else 10.dp
+        val gap: Dp = if (state.density == GridDensity.STANDARD) 12.dp else 8.dp
         LazyVerticalGrid(
-            columns = GridCells.Fixed(columns),
+            // Adaptive columns follow the real available width (rail, split screen, foldables, rotation),
+            // not the device's screen width: 2 on phones, 3 compact; 4-7 on landscape and tablets.
+            columns = GridCells.Adaptive(if (state.density == GridDensity.STANDARD) 150.dp else 104.dp),
             state = grid,
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 24.dp),
             horizontalArrangement = Arrangement.spacedBy(gap),
@@ -171,26 +175,6 @@ fun FeedScreen(main: MainViewModel, vm: FeedViewModel, pickPhoto: () -> Unit, wi
 private fun BoxContent(content: @Composable androidx.compose.foundation.layout.BoxScope.() -> Unit) =
     Box(Modifier.fillMaxSize(), content = content)
 
-/** Mirrors the Tailwind breakpoints: standard 2/3/4, dense 2/3/4/5/6 columns. */
-@Composable
-private fun gridColumns(wide: Boolean, density: GridDensity): Int {
-    val width = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp
-    return when (density) {
-        GridDensity.STANDARD -> when {
-            width < 640 -> 2
-            width < 1024 -> 3
-            else -> 4
-        }
-        GridDensity.DENSE -> when {
-            width < 640 -> 2
-            width < 768 -> 3
-            width < 1024 -> 4
-            width < 1280 -> 5
-            else -> 6
-        }
-    }.let { if (wide) maxOf(it, 3) else it }
-}
-
 @Composable
 private fun Controls(state: FeedState, vm: FeedViewModel, main: MainViewModel, pickPhoto: () -> Unit, toast: Boolean) {
     val c = Zen.colors
@@ -205,7 +189,7 @@ private fun Controls(state: FeedState, vm: FeedViewModel, main: MainViewModel, p
             Spacer(Modifier.width(10.dp))
             Box(Modifier.weight(1f)) {
                 if (state.searchInput.isEmpty()) {
-                    BodyText("Search 100+ wallpapers: mountains, AMOLED dark, ocean, neon...", size = 14.sp, color = c.textTertiary, maxLines = 1)
+                    BodyText("Search mountains, forests, ocean, AMOLED dark...", size = 14.sp, color = c.textTertiary, maxLines = 1)
                 }
                 BasicTextField(
                     value = state.searchInput,
@@ -222,7 +206,8 @@ private fun Controls(state: FeedState, vm: FeedViewModel, main: MainViewModel, p
         }
 
         // Quick actions
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        // Refresh was removed: it re-read the 15 minute cache and did nothing visible. Shuffle reloads a new stream.
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             InverseButton("Shuffle", vm::shuffle, icon = Icons.Outlined.Shuffle, iconTint = c.accentSoft, minHeight = 42.dp)
             ActionBox(
                 icon = if (state.density == GridDensity.STANDARD) Icons.Outlined.ViewModule else Icons.Outlined.GridView,
@@ -234,7 +219,6 @@ private fun Controls(state: FeedState, vm: FeedViewModel, main: MainViewModel, p
                 Icons.Outlined.Tune, "Filters", vm::toggleFiltersPanel,
                 highlighted = state.filtersActive, dot = state.filtersActive,
             )
-            ActionBox(Icons.Outlined.Refresh, "Refresh wallpapers", vm::refresh, spinning = state.loadingInitial)
         }
 
         // Category ribbon
@@ -314,13 +298,15 @@ private fun Controls(state: FeedState, vm: FeedViewModel, main: MainViewModel, p
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun <T> FilterGroup(title: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         BodyText(title, color = Zen.colors.textPrimary, weight = FontWeight.SemiBold)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Wraps instead of squeezing four chips into one row (labels broke over 3 lines on 360dp phones).
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             options.forEach { (id, label) ->
-                ChoiceChip(label, selected == id, { onSelect(id) }, Modifier.weight(1f), fontSize = 12.sp)
+                ChoiceChip(label, selected == id, { onSelect(id) }, fontSize = 12.sp)
             }
         }
     }

@@ -41,8 +41,13 @@ class WallpaperRepository(
     @Volatile
     private var sessionShuffled: List<WallpaperItem> = shuffler(localWallpapers)
 
+    /** Start of the remote query rotation; Shuffle moves it so the remote stream changes too, not just local order. */
+    @Volatile
+    private var rotationOffset = 0
+
     fun reshuffleSession(): List<WallpaperItem> {
         sessionShuffled = shuffler(localWallpapers)
+        rotationOffset = (0 until 997).random()
         synchronized(lock) { cache.clear() }
         return sessionShuffled
     }
@@ -84,7 +89,7 @@ class WallpaperRepository(
             val local = categoryPool(pool0, filters.category).drop((page - 1) * LOCAL_PER_PAGE).take(LOCAL_PER_PAGE)
             val queries = categoryDef?.queries ?: DISCOVERY_QUERIES
             val idx = page - 1
-            val query = queries[idx % queries.size]
+            val query = queries[(idx + rotationOffset) % queries.size]
             val remotePage = idx / queries.size + 1
             val withNasa = categoryDef?.useNasa == true || (categoryDef == null && idx % 4 == 3)
             providersQueried += listOf(ProviderType.WIKIMEDIA, ProviderType.OPENVERSE)
@@ -97,7 +102,7 @@ class WallpaperRepository(
                     else if (categoryDef != null) runCatching { nasa(query, categoryTag, 10, remotePage) }.getOrDefault(emptyList())
                     else {
                         val n = idx / 4
-                        runCatching { nasa(NASA_QUERIES[n % NASA_QUERIES.size], categoryTag, 10, n / NASA_QUERIES.size + 1) }.getOrDefault(emptyList())
+                        runCatching { nasa(NASA_QUERIES[(n + rotationOffset) % NASA_QUERIES.size], categoryTag, 10, n / NASA_QUERIES.size + 1) }.getOrDefault(emptyList())
                     }
                 }
                 Triple(w.await(), o.await(), n.await())
